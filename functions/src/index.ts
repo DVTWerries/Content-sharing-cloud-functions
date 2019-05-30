@@ -9,7 +9,7 @@ admin.initializeApp();
 export const storeMediaInfo = functions.storage.bucket().object().onFinalize((response) => {
     const url = `https://firebasestorage.googleapis.com/v0/b/${response.bucket}/o/${response.name!.replace('/', '%2F')}?alt=media&token=${response.metadata!.firebaseStorageDownloadTokens}`;
     const path = response.id.split('/');
-    admin.database().ref(path[1]).push({
+    admin.database().ref(path[1] + '/files').push({
         id: path[3],
         imageUrl: url
     });
