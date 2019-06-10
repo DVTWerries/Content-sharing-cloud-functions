@@ -9,10 +9,11 @@ admin.initializeApp();
 export const storeMediaInfo = functions.storage.bucket().object().onFinalize((response) => {
     const url = `https://firebasestorage.googleapis.com/v0/b/${response.bucket}/o/${response.name!.replace('\/', '%2F')}?alt=media&token=${response.metadata!.firebaseStorageDownloadTokens}`;
     const path = response.id.split('/');
-    admin.database().ref(path[1] + '/files').push({
-        id: path[3],
-        imageUrl: url
-    });
+    // tslint:disable-next-line: no-floating-promises
+    admin.database().ref(`${path[1]}/files/${path[2].split('.')[0]}`).update({
+            id: path[3],
+            imageUrl: url
+        });
 });
 
 export const storeUserInfo = functions.auth.user().onCreate((user) => {
