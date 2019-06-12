@@ -11,7 +11,7 @@ export const storeMediaInfo = functions.storage.bucket().object().onFinalize((re
     const path = response.id.split('/');
     // tslint:disable-next-line: no-floating-promises
     admin.database().ref(`${path[1]}/files/${path[2].split('.')[0]}`).update({
-            id: path[3],
+            id: path[2].split('.')[0],
             imageUrl: url
         });
 });
