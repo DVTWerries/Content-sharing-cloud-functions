@@ -12,8 +12,15 @@ export const storeMediaInfo = functions.storage.bucket().object().onFinalize((re
     // tslint:disable-next-line: no-floating-promises
     admin.database().ref(`${path[1]}/files/${path[2].split('.')[0]}`).update({
             id: path[2].split('.')[0],
+            imageName: path[2],
             imageUrl: url
         });
+});
+
+export const deleteMediaInfo = functions.storage.bucket().object().onDelete((response) => {
+    const path = response.id.split('/');
+    // tslint:disable-next-line: no-floating-promises
+    admin.database().ref(`${path[1]}/files/${path[2].split('.')[0]}`).remove();
 });
 
 export const storeUserInfo = functions.auth.user().onCreate((user) => {
