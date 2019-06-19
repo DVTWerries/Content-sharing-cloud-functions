@@ -1,5 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+// tslint:disable-next-line: no-implicit-dependencies
+const cors = require('cors')({ origin: true });
 
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -34,3 +36,54 @@ export const storeUserInfo = functions.auth.user().onCreate((user) => {
         displayName: user.displayName
     });
 });
+
+exports.searchPosts = functions.https.onRequest((req, res) => {
+    return cors(req, res, () => {
+        if (req.method !== 'GET') {
+            return res.status(404).json({
+                message: 'Not allowed'
+            })
+        }
+
+        return admin.database().ref('/').once('value', (dbSnapshot) => {
+            console.log('function v1');
+
+            const allResultsArr: [{}] = [{}];
+            allResultsArr.pop();
+
+            dbSnapshot.forEach((userSnapshot) => {
+                userSnapshot.child('/files').forEach((fileSnapshot) => {
+                    let containsAllSearchTerms = true;
+                    const postDescription = fileSnapshot.val().description;
+
+                    for (const element of req.query.searchTerm.split(' ')) {
+                        if (!postDescription.includes(element)) {
+                            containsAllSearchTerms = false;
+                            break;
+                        }
+                    }
+
+                    if (containsAllSearchTerms) {
+                        allResultsArr.push({
+                            userid: userSnapshot.key,
+                            userdisplayname: userSnapshot.val().displayName,
+                            useremail: userSnapshot.val().email,
+                            postid: fileSnapshot.key,
+                            imagename: fileSnapshot.val().imageName,
+                            postdescription: postDescription,
+                            imageurl: fileSnapshot.val().imageUrl
+                        });
+                    }
+                });
+            });
+
+            return res.status(200).json(JSON.stringify(allResultsArr));
+
+        });
+
+    }, (error: { code: number; message: any; }) => {
+        res.status(error.code).json({
+            message: `Something went wrong. ${error.message}`
+        })
+    })
+})
