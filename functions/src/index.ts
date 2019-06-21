@@ -45,6 +45,10 @@ exports.searchPosts = functions.https.onRequest((req, res) => {
             })
         }
 
+        if (req.query.searchTerm === '') {
+            return res.status(200).json(JSON.stringify([]));
+        }
+
         return admin.database().ref('/').once('value', (dbSnapshot) => {
             console.log('function v1');
 
