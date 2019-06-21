@@ -45,7 +45,7 @@ exports.searchPosts = functions.https.onRequest((req, res) => {
             })
         }
 
-        if (req.query.searchTerm === '') {
+        if (req.query.searchTerm.trim() === '') {
             return res.status(200).json(JSON.stringify([]));
         }
 
