@@ -13,7 +13,7 @@ export const storeMediaInfo = functions.storage.bucket().object().onFinalize((re
     const path = response.id.split('/');
 
     // tslint:disable-next-line: no-floating-promises
-    admin.database().ref(`${path[1]}/files/${path[2].split('.')[0]}`).update({
+    admin.database().ref(`/users/${path[1]}/files/${path[2].split('.')[0]}`).update({
         id: path[2].split('.')[0],
         imageName: path[2],
         imageUrl: url,
@@ -26,12 +26,13 @@ export const storeMediaInfo = functions.storage.bucket().object().onFinalize((re
 export const deleteMediaInfo = functions.storage.bucket().object().onDelete((response) => {
     const path = response.id.split('/');
     // tslint:disable-next-line: no-floating-promises
-    admin.database().ref(`${path[1]}/files/${path[2].split('.')[0]}`).remove();
+    admin.database().ref(`/users/${path[1]}/files/${path[2].split('.')[0]}`).remove();
 });
 
 export const storeUserInfo = functions.auth.user().onCreate((user) => {
+    const userId = user.uid;
     // tslint:disable-next-line: no-floating-promises
-    admin.database().ref(user.uid).set({
+    admin.database().ref(`/users/${userId}`).set({
         email: user.email,
         displayName: user.displayName
     });
@@ -49,7 +50,7 @@ exports.searchPosts = functions.https.onRequest((req, res) => {
             return res.status(200).json(JSON.stringify([]));
         }
 
-        return admin.database().ref('/').once('value', (dbSnapshot) => {
+        return admin.database().ref('/users').once('value', (dbSnapshot) => {
             console.log('function v1');
 
             const allResultsArr: [{}] = [{}];
