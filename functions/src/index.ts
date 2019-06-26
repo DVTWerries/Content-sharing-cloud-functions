@@ -23,6 +23,56 @@ export const storeMediaInfo = functions.storage.bucket().object().onFinalize((re
     });
 });
 
+export const uploadDulicateNode = functions.storage.bucket().object().onFinalize((response) => {
+    const url = `https://firebasestorage.googleapis.com/v0/b/${response.bucket}/o/${response.name!.replace('\/', '%2F')}?alt=media&token=${response.metadata!.firebaseStorageDownloadTokens}`;
+    const path = response.id.split('/');
+
+    // tslint:disable-next-line: no-floating-promises
+    admin.database().ref(`/uploads/${path[2].split('.')[0]}`).update({
+        userid: path[1],
+        imageUrl: url,
+        timeDateCreated: response.timeCreated
+    });
+});
+
+exports.homeFeedData = functions.https.onRequest((req, res) => {
+
+    return cors(req, res, () => {
+        if (req.method !== 'GET') {
+            return res.status(404).json({
+                message: 'Not allowed'
+            })
+        }
+
+        return admin.database().ref('/').once('value', (dbSnapshot) => {
+
+            const allResultsArr: [{}] = [{}];
+            allResultsArr.pop();
+
+            dbSnapshot.child('/uploads').forEach((fileSnapshot) => {
+
+                const userid = fileSnapshot.val().userid;
+                const postid = fileSnapshot.key;
+
+                allResultsArr.push({
+                    timeDateCreated: fileSnapshot.val().timeDateCreated,
+                    displayName: dbSnapshot.child(`users/${userid}`).val().displayName,
+                    description: dbSnapshot.child(`users/${userid}/files/${postid}`).val().description,
+                    imageUrl: dbSnapshot.child(`users/${userid}/files/${postid}`).val().imageUrl
+                });
+
+            });
+
+            return res.status(200).json(JSON.stringify(allResultsArr.reverse()));
+        });
+
+    }, (error: { code: number; message: any; }) => {
+        res.status(error.code).json({
+            message: `Something went wrong. ${error.message}`
+        })
+    })
+});
+
 export const deleteMediaInfo = functions.storage.bucket().object().onDelete((response) => {
     const path = response.id.split('/');
     // tslint:disable-next-line: no-floating-promises
