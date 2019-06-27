@@ -58,6 +58,7 @@ exports.homeFeedData = functions.https.onRequest((req, res) => {
                     timeDateCreated: fileSnapshot.val().timeDateCreated,
                     displayName: dbSnapshot.child(`users/${userid}`).val().displayName,
                     description: dbSnapshot.child(`users/${userid}/files/${postid}`).val().description,
+                    photoURL:  dbSnapshot.child(`users/${userid}`).val().photoURL,
                     imageUrl: dbSnapshot.child(`users/${userid}/files/${postid}`).val().imageUrl
                 });
 
@@ -84,7 +85,8 @@ export const storeUserInfo = functions.auth.user().onCreate((user) => {
     // tslint:disable-next-line: no-floating-promises
     admin.database().ref(`/users/${userId}`).set({
         email: user.email,
-        displayName: user.displayName
+        displayName: user.displayName,
+        photoURL: user.photoURL
     });
 });
 
