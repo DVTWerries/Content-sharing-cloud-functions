@@ -58,7 +58,7 @@ exports.homeFeedData = functions.https.onRequest((req, res) => {
                     timeDateCreated: fileSnapshot.val().timeDateCreated,
                     displayName: dbSnapshot.child(`users/${userid}`).val().displayName,
                     description: dbSnapshot.child(`users/${userid}/files/${postid}`).val().description,
-                    photoURL:  dbSnapshot.child(`users/${userid}`).val().photoURL,
+                    photoURL: dbSnapshot.child(`users/${userid}`).val().photoURL,
                     imageUrl: dbSnapshot.child(`users/${userid}/files/${postid}`).val().imageUrl
                 });
 
