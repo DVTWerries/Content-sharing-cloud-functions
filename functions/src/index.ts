@@ -102,39 +102,42 @@ exports.searchPosts = functions.https.onRequest((req, res) => {
             return res.status(200).json(JSON.stringify([]));
         }
 
-        return admin.database().ref('/users').once('value', (dbSnapshot) => {
-            console.log('function v1');
+        return admin.database().ref('/').once('value', (dbSnapshot) => {
 
             const allResultsArr: [{}] = [{}];
             allResultsArr.pop();
 
-            dbSnapshot.forEach((userSnapshot) => {
-                userSnapshot.child('/files').forEach((fileSnapshot) => {
-                    let containsAllSearchTerms = true;
-                    const postDescription = fileSnapshot.val().description;
+            dbSnapshot.child('/uploads').forEach((fileSnapshot) => {
 
-                    for (const element of req.query.searchTerm.split(' ')) {
-                        if (!postDescription.includes(element)) {
-                            containsAllSearchTerms = false;
-                            break;
-                        }
-                    }
+                const userid = fileSnapshot.val().userid;
+                const postid = fileSnapshot.key;
 
-                    if (containsAllSearchTerms) {
-                        allResultsArr.push({
-                            userid: userSnapshot.key,
-                            userdisplayname: userSnapshot.val().displayName,
-                            useremail: userSnapshot.val().email,
-                            postid: fileSnapshot.key,
-                            imagename: fileSnapshot.val().imageName,
-                            postdescription: postDescription,
-                            imageurl: fileSnapshot.val().imageUrl
-                        });
+                let containsAllSearchTerms = true;
+                const postDescription = dbSnapshot.child(`users/${userid}/files/${postid}`).val().description;
+
+                for (const element of req.query.searchTerm.split(' ')) {
+                    if (!postDescription.includes(element)) {
+                        containsAllSearchTerms = false;
+                        break;
                     }
-                });
+                }
+
+                if (containsAllSearchTerms) {
+                    allResultsArr.push({
+                        timeDateCreated: fileSnapshot.val().timeDateCreated,
+                        displayName: dbSnapshot.child(`users/${userid}`).val().displayName,
+                        description: dbSnapshot.child(`users/${userid}/files/${postid}`).val().description,
+                        photoURL: dbSnapshot.child(`users/${userid}`).val().photoURL,
+                        imageUrl: dbSnapshot.child(`users/${userid}/files/${postid}`).val().imageUrl
+
+                    });
+
+                }
             });
 
-            return res.status(200).json(JSON.stringify(allResultsArr));
+            return res.
+                status(200)
+                .json(JSON.stringify(allResultsArr.reverse()));
 
         });
 
