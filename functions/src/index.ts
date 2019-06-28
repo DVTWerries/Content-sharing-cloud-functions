@@ -78,6 +78,8 @@ export const deleteMediaInfo = functions.storage.bucket().object().onDelete((res
     const path = response.id.split('/');
     // tslint:disable-next-line: no-floating-promises
     admin.database().ref(`/users/${path[1]}/files/${path[2].split('.')[0]}`).remove();
+    // tslint:disable-next-line: no-floating-promises
+    admin.database().ref(`/uploads/${path[2].split('.')[0]}`).remove();
 });
 
 export const storeUserInfo = functions.auth.user().onCreate((user) => {
